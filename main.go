@@ -157,8 +157,8 @@ func main() {
 	fmt.Printf("\nProcess Execution Time: %v\n", totalTimeTaken)
 	fmt.Printf("Requests Sent: \t\t%d\n", concurrency)
 	fmt.Printf("Maximum Requests Rate: \t%d/sec\n", maxRate)
-	fmt.Printf("Requests Processed: \t%d\n", atomic.LoadInt64(&completedRequests))
-	fmt.Printf("Requests Throttled: \t%d\n", atomic.LoadInt64(&requestsThrottled))
+	fmt.Printf("Requests Processed: \t%d\n", completedRequests)
+	fmt.Printf("Requests Throttled: \t%d\n", requestsThrottled)
 	os.Exit(1)
 }
 
