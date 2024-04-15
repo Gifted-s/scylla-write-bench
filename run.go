@@ -10,7 +10,13 @@ import (
 	"github.com/gocql/gocql"
 )
 
-func RunConcurrently(maxRate int, wg *sync.WaitGroup, processRequest func(threadId int)) error {
+// RunConcurrently runs the processRequest function concurrently and uses the wait group
+// to indicate the completion of each goroutine. Returns error if concurrency is zero
+func RunConcurrently(wg *sync.WaitGroup, processRequest func(threadId int)) error {
+	if concurrency == 0 {
+		return fmt.Errorf("concurrency should be greater than 0")
+	}
+
 	for i := 0; i < concurrency; i++ {
 		go func(threadId int, wg *sync.WaitGroup) {
 			defer wg.Done()
@@ -18,7 +24,8 @@ func RunConcurrently(maxRate int, wg *sync.WaitGroup, processRequest func(thread
 				// process request
 				processRequest(threadId)
 			} else {
-				// throttle request
+				// throttle request(another option can be to queue these requests and
+				// run them in the future instead of throttling them)
 				atomic.AddInt64(&requestsThrottled, 1)
 			}
 
@@ -27,16 +34,18 @@ func RunConcurrently(maxRate int, wg *sync.WaitGroup, processRequest func(thread
 	return nil
 }
 
+// RunTest exceutes the test function and adds its latency to the overall latency
 func RunTest(threadId int, test func() (time.Duration, error)) {
 	latency, err := test()
 	if err == nil {
+
 		// TODO: We can collect other information about each
-		// thread execution and use these information to plot a histogram
+		// thread execution and use these to plot a histogram
 		updateMetrics(latency)
 	} else {
 		fmt.Printf("ThreadId: %d  error: %s\n", threadId, err)
 		if latency > errorToTimeoutCutoffTime {
-			// Consider this error to be timeout error and add to the total latency
+			// Consider this error to be timeout error and add its latency to total latency
 			updateMetrics(latency)
 		}
 	}
@@ -47,6 +56,7 @@ func updateMetrics(latency time.Duration) {
 	atomic.AddInt64(&completedRequests, 1)
 }
 
+// DoWrite performs db write operation
 func DoWrite(threadId int, session *gocql.Session) {
 	RunTest(threadId, func() (time.Duration, error) {
 		request := "INSERT INTO " + keyspaceName + "." + tableName + " (key, value) VALUES (?, ?)"
@@ -59,7 +69,6 @@ func DoWrite(threadId int, session *gocql.Session) {
 		err := bound.Exec()
 		requestEnd := time.Now()
 		latency := requestEnd.Sub(requestStart)
-
 		if err != nil {
 			// Normally we should retry here since failure could be caused by a transient reason.
 			// Would discuss this with the team(retry count, policy e.t.c)

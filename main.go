@@ -35,6 +35,8 @@ var (
 
 	tracker           *WindowTracker
 	requestsThrottled int64
+
+	stopAll bool
 )
 
 func ExecuteQuery(ctx context.Context, session *gocql.Session, request string) {
@@ -53,8 +55,14 @@ func PrepareDatabase(ctx context.Context, session *gocql.Session, replicationFac
 }
 
 func DropDatabase(ctx context.Context, session *gocql.Session) {
-	defer session.Close()
 	ExecuteQuery(ctx, session, fmt.Sprintf("DROP KEYSPACE  IF EXISTS  %s", keyspaceName))
+}
+
+func cleanup(ctx context.Context, session *gocql.Session) {
+	defer session.Close()
+	if dropDBAfterTest {
+		DropDatabase(ctx, session)
+	}
 }
 
 func main() {
@@ -70,7 +78,7 @@ func main() {
 
 	flag.BoolVar(&dropDBAfterTest, "drop-db", true, "drop database after process is completed")
 
-	flag.DurationVar(&reportInterval, "report-interval", 5*time.Millisecond, "at what interval should total requests performed and the avarage latencies be printed")
+	flag.DurationVar(&reportInterval, "report-interval", 1*time.Millisecond, "at what interval should total requests performed and the avarage latencies be printed")
 	flag.Parse()
 
 	if clusterName == "" {
@@ -95,11 +103,7 @@ func main() {
 	replicationFactor = 1 // Should be > 1 for fault tolerance in production mode
 
 	PrepareDatabase(ctx, session, replicationFactor)
-
-	if dropDBAfterTest {
-		defer DropDatabase(ctx, session)
-	}
-
+	defer cleanup(ctx, session)
 	rlconfig := NewRateLimiterConfig(maxRate)
 	tracker = NewWindowTracker(rlconfig)
 
@@ -111,12 +115,14 @@ func main() {
 
 		<-interrupted
 		fmt.Println("\nkilled")
+		cleanup(ctx, session)
 		os.Exit(1)
 	}()
 
 	go func() {
 		time.Sleep(processTimeout)
 		fmt.Println("\nProcess took longer than expected, timeout error")
+		cleanup(ctx, session)
 		os.Exit(1)
 	}()
 
@@ -130,10 +136,10 @@ func main() {
 	fmt.Println("Concurrency:\t\t", concurrency)
 	fmt.Println("Maximum Rate Limit:\t", maxRate, "req/s")
 	wg := &sync.WaitGroup{}
-
 	wg.Add(concurrency)
+
 	startTime := time.Now()
-	err = RunConcurrently(maxRate, wg, func(threadId int) {
+	err = RunConcurrently(wg, func(threadId int) {
 		DoWrite(threadId, session)
 	})
 	if err != nil {
@@ -145,7 +151,9 @@ func main() {
 		ticker := time.NewTicker(reportInterval)
 		defer ticker.Stop()
 		for range ticker.C {
-			printStat()
+			if !stopAll {
+				printStat()
+			}
 		}
 	}()
 
@@ -153,13 +161,13 @@ func main() {
 	endTime := time.Now()
 	totalTimeTaken := endTime.Sub(startTime)
 	printStat()
-	fmt.Printf("\nFINAL RESULT:")
-	fmt.Printf("\nProcess Execution Time: %v\n", totalTimeTaken)
+	fmt.Printf("\nFINAL RESULT:\n")
 	fmt.Printf("Requests Sent: \t\t%d\n", concurrency)
 	fmt.Printf("Maximum Requests Rate: \t%d/sec\n", maxRate)
 	fmt.Printf("Requests Processed: \t%d\n", completedRequests)
 	fmt.Printf("Requests Throttled: \t%d\n", requestsThrottled)
-	os.Exit(1)
+	fmt.Printf("Process Execution Time: %v\n", totalTimeTaken)
+	stopAll = true
 }
 
 func printStat() {

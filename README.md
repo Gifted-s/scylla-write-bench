@@ -31,7 +31,7 @@ go build ./
 
 - `--drop-db` drop database after process is completed (default <i>true</i>).
 
-- `--report-interval` sets interval at which total requests performed and the avarage latencies is printed (default <i>5 milliseconds</i>).
+- `--report-interval` sets interval at which total requests performed and the avarage latencies is printed (default <i>1 milliseconds</i>).
 
 
 ## Examples
