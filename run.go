@@ -24,8 +24,8 @@ func RunConcurrently(wg *sync.WaitGroup, processRequest func(threadId int)) erro
 				// process request
 				processRequest(threadId)
 			} else {
-				// throttle request(another option can be to queue these requests and
-				// run them in the future instead of throttling them)
+				// throttle request(another option is to queue these requests and
+				// run them in the future instead of rejecting them)
 				atomic.AddInt64(&requestsThrottled, 1)
 			}
 
