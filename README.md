@@ -17,7 +17,7 @@ go build ./
 
 - `--parallelism` sets maximum number of queries to be performed in parallel.
 
-- `--rate-limit ` sets maximum number of requests to be performed per second.
+- `--rate-limit ` sets maximum number of requests to be performed/second.
 
 #### Flags(optional)
 
