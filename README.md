@@ -25,7 +25,7 @@ go build ./
 
 - `--table` defines table name to work with (default <i>test</i>).
 
-- `--process-timeout` set how long this process should run before signaling a timeout error (default <i>30 minutes</i>).
+- `--process-timeout` sets how long this process should run before signaling a timeout error (default <i>30 minutes</i>).
 
 - `--timeout` sets timeout for each request (default <i>5 seconds</i>).
 
