@@ -25,13 +25,13 @@ go build ./
 
 - `--table` defines table name to work with (default <i>test</i>).
 
-- `--process-timeout` set how long this process should run before signaling a timeout error (default <i>30 minutes</i>).
+- `--process-timeout` sets how long this process should run before signaling a timeout error (default <i>30 minutes</i>).
 
 - `--timeout` sets timeout for each request (default <i>5 seconds</i>).
 
 - `--drop-db` drop database after process is completed (default <i>true</i>).
 
-- `--report-interval` sets interval at which total requests performed and the avarage latencies is printed (default <i>1 milliseconds</i>).
+- `--report-interval` sets interval at which total requests performed and the avarage latencies is printed (default <i>1 millisecond</i>).
 
 
 ## Examples
