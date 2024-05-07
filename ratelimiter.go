@@ -28,7 +28,7 @@ func NewRateLimiterConfig(rate int) *RateLimiterConfig {
 
 // WindowTracker tracks requests within the window
 type WindowTracker struct {
-	mu           *sync.Mutex
+	mu           sync.Mutex
 	StartTime    time.Time
 	RequestCount int
 	config       *RateLimiterConfig
@@ -36,7 +36,7 @@ type WindowTracker struct {
 
 func NewWindowTracker(rlconfig *RateLimiterConfig) *WindowTracker {
 	return &WindowTracker{
-		mu:           &sync.Mutex{},
+		mu:           sync.Mutex{},
 		StartTime:    time.Now(),
 		RequestCount: 0,
 		config:       rlconfig,

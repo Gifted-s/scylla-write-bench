@@ -16,7 +16,7 @@ func TestResetWindow(t *testing.T) {
 	mockTime := time.Now() // Replace with mocking library
 
 	wt := &WindowTracker{
-		mu:           &sync.Mutex{},
+		mu:           sync.Mutex{},
 		StartTime:    mockTime,
 		RequestCount: 0,
 		config: &RateLimiterConfig{
@@ -56,7 +56,7 @@ func TestAllowRequest(t *testing.T) {
 	mockTime := time.Now() // Replace with mocking library
 
 	wt := &WindowTracker{
-		mu:           &sync.Mutex{},
+		mu:           sync.Mutex{},
 		StartTime:    mockTime,
 		RequestCount: 0,
 		config: &RateLimiterConfig{
