@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/gocql/gocql"
+	"github.com/pkg/errors"
 )
 
 // RunConcurrently runs the processRequest function concurrently and uses the wait group
 // to indicate the completion of each goroutine. Returns error if concurrency is zero
 func RunConcurrently(wg *sync.WaitGroup, processRequest func(threadId int)) error {
 	if concurrency == 0 {
-		return fmt.Errorf("concurrency should be greater than 0")
+		return errors.New("concurrency should be greater than 0")
 	}
 
 	for i := 0; i < concurrency; i++ {
