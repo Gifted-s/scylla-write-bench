@@ -1,6 +1,6 @@
 # scylla-write-bench
 
-scylla-write-bench is a simple CLI for performing write benchmarking for [Scylla](https://github.com/scylladb/scylla) written in Go.
+scylla-write-bench is a CLI for performing write benchmarking for [Scylla](https://github.com/scylladb/scylla) written in Go.
 It allows parallel insertion of random data to ScyllaDB while rate-limiting the number of requests. i.e a user can specify the maximum number of parallel writes and the maximum rate at which these writes are performed i.e req/sec. The number of requests performed and average latencies is printed periodically for assessment.
 
 ## Install
